@@ -35,19 +35,35 @@ def has_permission(permission_code):
             user_roles = UserRole.objects.filter(user=request.user)
             role_ids = [user_role.role_id for user_role in user_roles]
             
+            # 添加调试信息
+            print(f"Checking permission: {permission_code}")
+            print(f"User roles: {role_ids}")
+            
             # 检查用户角色是否具有所需权限
-            has_perm = RolePermission.objects.filter(
+            role_permissions = RolePermission.objects.filter(
                 role_id__in=role_ids,
                 permission__codename=permission_code
-            ).exists()
+            )
+            
+            # 打印查询到的权限
+            print(f"Found permissions: {[rp.permission.codename for rp in role_permissions]}")
+            
+            has_perm = role_permissions.exists()
             
             if has_perm:
                 return view_func(self, request, *args, **kwargs)
             else:
-                return Response(
-                    {"detail": f"您没有 '{permission_code}' 权限执行此操作"}, 
-                    status=status.HTTP_403_FORBIDDEN
-                )
+                # 添加更详细的错误信息
+                return Response({
+                    "detail": f"您没有 '{permission_code}' 权限执行此操作",
+                    "debug_info": {
+                        "user_roles": list(role_ids),
+                        "required_permission": permission_code,
+                        "available_permissions": list(RolePermission.objects.filter(
+                            role_id__in=role_ids
+                        ).values_list('permission__codename', flat=True))
+                    }
+                }, status=status.HTTP_403_FORBIDDEN)
         return _wrapped_view
     return decorator
 

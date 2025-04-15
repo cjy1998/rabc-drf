@@ -7,6 +7,7 @@ export interface User {
   is_active: boolean;
   is_staff: boolean;
   date_joined: string;
+  roles?: UserRole[];
 }
 
 export interface Role {

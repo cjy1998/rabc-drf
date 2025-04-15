@@ -11,14 +11,14 @@ export const API_ENDPOINTS = {
     `/api/v1/users/${userId}/change_password`,
 
   // 角色
-  ROLES: "/api/v1/roles",
+  ROLES: "/api/v1/roles/",
 
   // 权限
-  PERMISSIONS: "/api/v1/permissions",
+  PERMISSIONS: "/api/v1/permissions/",
 
   // 角色权限
-  ROLE_PERMISSIONS: "/api/v1/role-permissions",
+  ROLE_PERMISSIONS: "/api/v1/role-permissions/",
 
   // 用户角色
-  USER_ROLES: "/api/v1/user-roles",
+  USER_ROLES: "/api/v1/user-roles/",
 };

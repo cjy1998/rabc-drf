@@ -72,6 +72,20 @@ export default function RolesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isPermissionDialogOpen, setIsPermissionDialogOpen] = useState(false);
   const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
+  const [permissionPagination, setPermissionPagination] =
+    useState<PaginationParams>({
+      page: 1,
+      page_size: 10,
+    });
+  const [paginatedPermissions, setPaginatedPermissions] = useState<{
+    items: Permission[];
+    totalPages: number;
+  }>({
+    items: [],
+    totalPages: 1,
+  });
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
 
   // 初始化表单
   const form = useForm<RoleFormValues>({
@@ -101,9 +115,10 @@ export default function RolesPage() {
   // 获取权限列表
   const fetchPermissions = async () => {
     try {
-      const response = await api.get<Permission[]>(API_ENDPOINTS.PERMISSIONS);
-      console.log("获取权限列表成功:", response.data);
-      setPermissions(response.data);
+      const response = await api.get<PaginatedResponse<Permission>>(
+        `${API_ENDPOINTS.PERMISSIONS}?page=1&page_size=100`
+      );
+      setPermissions(response.data.results);
     } catch (error: any) {
       console.error("获取权限列表失败:", error);
       toast.error(error.response?.data?.detail || "获取权限列表失败");
@@ -123,11 +138,31 @@ export default function RolesPage() {
     }
   };
 
+  // 计算当前页的权限
+  const updatePaginatedPermissions = () => {
+    const startIndex =
+      (permissionPagination.page - 1) * permissionPagination.page_size;
+    const endIndex = startIndex + permissionPagination.page_size;
+    const items = permissions.slice(startIndex, endIndex);
+    const totalPages = Math.ceil(
+      permissions.length / permissionPagination.page_size
+    );
+
+    setPaginatedPermissions({
+      items,
+      totalPages,
+    });
+  };
+
   useEffect(() => {
     fetchRoles();
     fetchPermissions();
     fetchRolePermissions();
   }, [pagination.page, pagination.page_size]);
+
+  useEffect(() => {
+    updatePaginatedPermissions();
+  }, [permissions, permissionPagination.page, permissionPagination.page_size]);
 
   // 创建角色
   const createRole = async (data: RoleFormValues) => {
@@ -143,27 +178,94 @@ export default function RolesPage() {
     }
   };
 
-  // 删除角色
-  const deleteRole = async (roleId: number) => {
-    if (!confirm("确定要删除此角色吗？")) return;
+  // 打开编辑角色对话框
+  const openEditDialog = (role: Role) => {
+    setEditingRole(role);
+    // 设置表单值
+    form.reset({
+      name: role.name,
+      description: role.description || "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  // 更新角色
+  const updateRole = async (data: RoleFormValues) => {
+    if (!editingRole) return;
 
     try {
-      await api.delete(`${API_ENDPOINTS.ROLES}${roleId}/`);
-      toast.success("角色删除成功");
+      await api.put(`${API_ENDPOINTS.ROLES}${editingRole.id}/`, data);
+      toast.success("角色更新成功");
+      setIsEditDialogOpen(false);
+      form.reset();
+      setEditingRole(null);
       fetchRoles(); // 刷新角色列表
-      fetchRolePermissions(); // 刷新角色权限列表
     } catch (error: any) {
-      console.error("删除角色失败:", error);
-      toast.error(error.response?.data?.detail || "删除角色失败");
+      console.error("更新角色失败:", error);
+      toast.error(error.response?.data?.detail || "更新角色失败");
     }
+  };
+
+  // 提交表单处理
+  const onSubmit = (data: RoleFormValues) => {
+    if (editingRole) {
+      updateRole(data);
+    } else {
+      createRole(data);
+    }
+  };
+
+  // 删除角色
+  const deleteRole = async (roleId: number) => {
+    toast.custom(
+      (t) => (
+        <div className="bg-background border rounded-lg shadow-lg p-6 max-w-md w-full">
+          <h3 className="text-lg font-semibold mb-4">确认删除</h3>
+          <p className="text-muted-foreground mb-6">
+            确定要删除此角色吗？此操作无法撤销。
+          </p>
+          <div className="flex justify-end space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => toast.dismiss(t)}
+            >
+              取消
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={async () => {
+                toast.dismiss(t);
+                try {
+                  await api.delete(`${API_ENDPOINTS.ROLES}${roleId}/`);
+                  toast.success("角色删除成功");
+                  fetchRoles(); // 刷新角色列表
+                  fetchRolePermissions(); // 刷新角色权限列表
+                } catch (error: any) {
+                  console.error("删除角色失败:", error);
+                  toast.error(error.response?.data?.detail || "删除角色失败");
+                }
+              }}
+            >
+              确认删除
+            </Button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity,
+      }
+    );
   };
 
   // 打开权限设置对话框
   const openPermissionDialog = (role: Role) => {
     setSelectedRole(role);
+    setPermissionPagination({ page: 1, page_size: 10 }); // 重置权限分页到第一页
 
     // 获取当前角色的权限
-    const currentPermissions = rolePermissions
+    const currentPermissions = rolePermissions.results
       .filter((rp) => rp.role === role.id)
       .map((rp) => rp.permission);
 
@@ -233,6 +335,10 @@ export default function RolesPage() {
     setPagination((prev) => ({ ...prev, page }));
   };
 
+  const handlePermissionPageChange = (page: number) => {
+    setPermissionPagination((prev) => ({ ...prev, page }));
+  };
+
   return (
     <ProtectedRoute>
       <DashboardLayout>
@@ -253,7 +359,7 @@ export default function RolesPage() {
                 </DialogHeader>
                 <Form {...form}>
                   <form
-                    onSubmit={form.handleSubmit(createRole)}
+                    onSubmit={form.handleSubmit(onSubmit)}
                     className="space-y-4"
                   >
                     <FormField
@@ -284,6 +390,52 @@ export default function RolesPage() {
                     />
                     <DialogFooter>
                       <Button type="submit">创建角色</Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+
+            {/* 编辑角色对话框 */}
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>编辑角色</DialogTitle>
+                  <DialogDescription>修改角色信息</DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-4"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>角色名称</FormLabel>
+                          <FormControl>
+                            <Input placeholder="请输入角色名称" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>描述</FormLabel>
+                          <FormControl>
+                            <Input placeholder="请输入角色描述" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <DialogFooter>
+                      <Button type="submit">保存修改</Button>
                     </DialogFooter>
                   </form>
                 </Form>
@@ -331,6 +483,13 @@ export default function RolesPage() {
                                 设置权限
                               </Button>
                               <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openEditDialog(role)}
+                              >
+                                编辑
+                              </Button>
+                              <Button
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => deleteRole(role.id)}
@@ -370,30 +529,48 @@ export default function RolesPage() {
                   : "设置权限"}
               </DialogDescription>
             </DialogHeader>
-            <div className="max-h-[60vh] overflow-y-auto grid gap-2">
-              {/*{permissions.results.map((permission) => (*/}
-              {/*  <div*/}
-              {/*    key={permission.id}*/}
-              {/*    className="flex items-center space-x-2"*/}
-              {/*  >*/}
-              {/*    <input*/}
-              {/*      type="checkbox"*/}
-              {/*      id={`perm-${permission.id}`}*/}
-              {/*      checked={selectedPermissions.includes(permission.id)}*/}
-              {/*      onChange={() => togglePermission(permission.id)}*/}
-              {/*      className="rounded border-gray-300 text-primary focus:ring-primary"*/}
-              {/*    />*/}
-              {/*    <label*/}
-              {/*      htmlFor={`perm-${permission.id}`}*/}
-              {/*      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"*/}
-              {/*    >*/}
-              {/*      {permission.name}*/}
-              {/*      <p className="text-xs text-gray-500">*/}
-              {/*        {permission.description}*/}
-              {/*      </p>*/}
-              {/*    </label>*/}
-              {/*  </div>*/}
-              {/*))}*/}
+            <div className="space-y-4">
+              <div className="max-h-[40vh] overflow-y-auto border rounded-md p-3">
+                {paginatedPermissions.items.length === 0 ? (
+                  <div className="text-center py-2 text-sm text-muted-foreground">
+                    暂无权限数据
+                  </div>
+                ) : (
+                  paginatedPermissions.items.map((permission) => (
+                    <div
+                      key={permission.id}
+                      className="flex items-center space-x-2 py-2 border-b last:border-0"
+                    >
+                      <input
+                        type="checkbox"
+                        id={`perm-${permission.id}`}
+                        checked={selectedPermissions.includes(permission.id)}
+                        onChange={() => togglePermission(permission.id)}
+                        className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
+                      />
+                      <label
+                        htmlFor={`perm-${permission.id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1"
+                      >
+                        {permission.name}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {permission.description}
+                        </p>
+                      </label>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {paginatedPermissions.totalPages > 1 && (
+                <div className="flex justify-center mt-2">
+                  <Pagination
+                    currentPage={permissionPagination.page}
+                    totalPages={paginatedPermissions.totalPages}
+                    onPageChange={handlePermissionPageChange}
+                  />
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button onClick={saveRolePermissions}>保存权限设置</Button>
