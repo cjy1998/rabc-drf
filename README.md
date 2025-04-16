@@ -189,7 +189,8 @@ python manage.py init_permissions
 ### 基础装饰器
 
 ```python
-from rbac.utils.swagger import api_docs
+from utils import api_docs
+
 
 @api_docs(
     summary='操作名称',
@@ -204,20 +205,23 @@ def my_view(request):
 ### 预定义 CRUD 操作装饰器
 
 ```python
-from rbac.utils.swagger import (
+from utils import (
     list_api_docs, create_api_docs, retrieve_api_docs,
     update_api_docs, partial_update_api_docs, destroy_api_docs
 )
+
 
 # 列表API
 @list_api_docs(description='获取用户列表')
 def list(self, request, *args, **kwargs):
     ...
 
+
 # 创建API
 @create_api_docs(description='创建新用户')
 def create(self, request, *args, **kwargs):
     ...
+
 
 # 详情API
 @retrieve_api_docs(description='获取用户详情')

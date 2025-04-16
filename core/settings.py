@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     # 自定义应用
     'rbac',
+    'navigation.apps.NavigationConfig'
 ]
 
 MIDDLEWARE = [

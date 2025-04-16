@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -6,14 +5,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from django.contrib.auth import authenticate
-from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 # 导入自定义文档装饰器
-from .utils.swagger import (
+from utils.swagger import (
     api_docs, list_api_docs, create_api_docs, retrieve_api_docs,
-    update_api_docs, partial_update_api_docs, destroy_api_docs,
-    SUCCESS_RESPONSE
+    update_api_docs, partial_update_api_docs, destroy_api_docs
 )
 
 # 导入权限装饰器
@@ -25,7 +22,7 @@ from .serializers import (
     RolePermissionSerializer, UserRoleSerializer,
     UserLoginSerializer, ChangePasswordSerializer
 )
-from .permissions import HasRolePermission
+
 
 class UserViewSet(viewsets.ModelViewSet):
     """
