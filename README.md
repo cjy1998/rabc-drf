@@ -14,32 +14,55 @@
 - `core/`: 项目核心配置
 - `rbac/`: RBAC 应用，包含用户、角色和权限相关的功能
 
-## 安装
+## 安装与配置
 
-1. 克隆项目
-2. 创建虚拟环境
-   ```
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   venv\Scripts\activate     # Windows
-   ```
-3. 安装依赖
-   ```
-   pip install -r requirements.txt
-   ```
-4. 迁移数据库
-   ```
-   python manage.py makemigrations
-   python manage.py migrate
-   ```
-5. 初始化 RBAC 数据
-   ```
-   python manage.py init_rbac_data
-   ```
-6. 启动服务
-   ```
-   python manage.py runserver
-   ```
+### 克隆代码仓库
+
+```bash
+git clone https://github.com/yourusername/rbac-project.git
+cd rbac-project
+```
+
+### 后端配置
+
+1. 创建并激活虚拟环境
+
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+venv\Scripts\activate  # Windows
+```
+
+2. 安装依赖
+
+```bash
+pip install -r requirements.txt
+```
+
+3. 初始化数据库
+
+```bash
+python manage.py migrate
+```
+
+4. 创建超级用户
+
+```bash
+python manage.py createsuperuser
+```
+
+5. 启动后端服务器
+
+```bash
+python manage.py runserver 8080
+```
+
+> **注意事项**:
+>
+> - 确保已安装 django-cors-headers 包，它已添加到 requirements.txt 中
+> - 如果遇到跨域问题，请检查 settings.py 中的 CORS 配置是否正确
+
+### 前端配置
 
 ## API 端点
 

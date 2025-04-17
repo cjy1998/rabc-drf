@@ -21,4 +21,10 @@ export const API_ENDPOINTS = {
 
   // 用户角色
   USER_ROLES: "/api/v1/user-roles/",
+
+  // 链接
+  LINKS: "/api/v1/links/",
+
+  // 标签
+  TAGS: "/api/v1/tags/",
 };

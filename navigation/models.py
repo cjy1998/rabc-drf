@@ -9,6 +9,8 @@ class Tags(models.Model):
     color = models.CharField(max_length=7, blank=True, null=True ,verbose_name='标签颜色')
     sort_order = models.IntegerField(blank=True, null=True ,verbose_name='标签排序')
     is_show = models.BooleanField(default=True ,verbose_name='是否显示')
+    parent = models.ForeignKey('self', on_delete=models.SET_NULL, related_name="children", blank=True, null=True,
+                               verbose_name='父级标签')
     created_at = models.DateTimeField(auto_now_add=True ,verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True ,verbose_name='更新时间')
     class Meta:
@@ -26,9 +28,9 @@ class Links(models.Model):
     is_recommend = models.BooleanField(default=False,verbose_name='是否推荐')
     is_show = models.BooleanField(default=True,verbose_name='是否显示')
     sort_order = models.IntegerField(blank=True, null=True,verbose_name='链接排序')
+    tags = models.ManyToManyField(Tags, blank=True,related_name="links" ,verbose_name='标签')
     created_at = models.DateTimeField(auto_now_add=True,verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True,verbose_name='更新时间')
-    tags = models.ManyToManyField(Tags, blank=True,related_name="links" ,verbose_name='标签')
     class Meta:
         db_table = 'links'
         verbose_name = '链接'

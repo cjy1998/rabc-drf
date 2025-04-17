@@ -11,7 +11,7 @@ from utils.swagger import api_docs
 # Create your views here.
 @api_docs(summary="链接相关操作")
 class LinksView(ModelViewSet):
-    queryset = Links.objects.all()
+    queryset = Links.objects.all().prefetch_related('tags')  # 预取tags
     serializer_class = LinksSerializer
     permission_classes = [permissions.AllowAny]
     # filterset_fields = ["is_show", "is_recommend", "tags"]

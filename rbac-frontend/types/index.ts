@@ -39,6 +39,28 @@ export interface UserRole {
   role_name: string;
 }
 
+export interface Link {
+  id: number;
+  title: string;
+  url: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+  tags?: Tag[];
+}
+
+export interface Tag {
+  id: number;
+  name: string;
+  slug: string;
+  color: string;
+  parent_id: number | null;
+  parent_name?: string;
+  created_at: string;
+  updated_at: string;
+  children?: Tag[];
+}
+
 export interface PaginatedResponse<T> {
   count: number;
   next: string | null;

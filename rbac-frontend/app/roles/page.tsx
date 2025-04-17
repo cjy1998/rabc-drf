@@ -140,6 +140,8 @@ export default function RolesPage() {
 
   // 计算当前页的权限
   const updatePaginatedPermissions = () => {
+    if (permissions.length === 0) return;
+
     const startIndex =
       (permissionPagination.page - 1) * permissionPagination.page_size;
     const endIndex = startIndex + permissionPagination.page_size;
@@ -271,6 +273,19 @@ export default function RolesPage() {
 
     setSelectedPermissions(currentPermissions);
     setIsPermissionDialogOpen(true);
+
+    // 立即更新分页权限数据
+    const startIndex = 0; // 第一页从0开始
+    const endIndex = startIndex + permissionPagination.page_size;
+    const items = permissions.slice(startIndex, endIndex);
+    const totalPages = Math.ceil(
+      permissions.length / permissionPagination.page_size
+    );
+
+    setPaginatedPermissions({
+      items,
+      totalPages,
+    });
   };
 
   // 权限选择状态切换
@@ -290,7 +305,7 @@ export default function RolesPage() {
 
     try {
       // 获取当前角色的所有权限关联
-      const currentRolePermissions = rolePermissions.filter(
+      const currentRolePermissions = rolePermissions.results.filter(
         (rp) => rp.role === selectedRole.id
       );
 

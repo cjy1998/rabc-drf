@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-replace-with-your-secure-key'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    
+    '*'
 ]
 
 # 关闭URL尾部斜杠自动添加
@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_yasg',
+    'corsheaders',  # 添加 CORS 处理应用
     # 自定义应用
     'rbac',
     'navigation.apps.NavigationConfig'
@@ -54,12 +55,23 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # 添加CORS中间件，必须在CommonMiddleware之前
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# CORS 设置
+CORS_ALLOW_ALL_ORIGINS = True  # 允许所有来源跨域访问，生产环境应该设置为特定来源
+CORS_ALLOW_CREDENTIALS = True  # 允许携带Cookie
+
+# 也可以指定允许的来源
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "http://127.0.0.1:3000",
+# ]
 
 ROOT_URLCONF = 'core.urls'
 

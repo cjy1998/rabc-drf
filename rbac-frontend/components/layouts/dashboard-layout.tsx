@@ -72,6 +72,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               权限管理
             </Link>
+            <Link
+              href="/links"
+              className="text-sm font-medium transition-colors hover:text-primary"
+            >
+              链接管理
+            </Link>
+            <Link
+              href="/tags"
+              className="text-sm font-medium transition-colors hover:text-primary"
+            >
+              标签管理
+            </Link>
           </div>
 
           <div className="flex-1 md:flex-none"></div>
@@ -121,6 +133,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   onClick={toggleMenu}
                 >
                   权限管理
+                </Link>
+                <Link
+                  href="/links"
+                  className="py-2 text-sm font-medium transition-colors hover:text-primary"
+                  onClick={toggleMenu}
+                >
+                  链接管理
+                </Link>
+                <Link
+                  href="/tags"
+                  className="py-2 text-sm font-medium transition-colors hover:text-primary"
+                  onClick={toggleMenu}
+                >
+                  标签管理
                 </Link>
               </nav>
             </div>
